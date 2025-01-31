@@ -8,9 +8,19 @@
             crossorigin="anonymous"></script>
     <script>
         async function fetchBurned() {
-            const response = await fetch("/api/burned");
-            const data = await response.json();
-            document.getElementById("burnedAmount").innerText = data.total_burned.toFixed(2) + " SHIRONEKO";
+            try {
+                const response = await fetch("/api/burned");
+                const data = await response.json();
+                console.log(data); // API 응답 데이터 확인
+                if (data && data.total_burned !== undefined) {
+                    document.getElementById("burnedAmount").textContent = data.total_burned.toFixed(2) + " SHIRONEKO";
+                } else {
+                    document.getElementById("burnedAmount").textContent = "데이터 오류";
+                }
+            } catch (error) {
+                console.error("Error fetching burned data:", error);
+                document.getElementById("burnedAmount").textContent = "데이터를 가져오는 중 오류 발생";
+            }
         }
         setInterval(fetchBurned, 60000); // 1분마다 갱신
         window.onload = function() {
