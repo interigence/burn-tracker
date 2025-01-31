@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shironeko Burn Tracker</title>
+    <ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="pub-9604512601494581"
+     data-ad-slot="5372001330"
+     data-ad-format="auto"></ins>
+    <script>
+        async function fetchBurned() {
+            const response = await fetch("/api/burned");
+            const data = await response.json();
+            document.getElementById("burnedAmount").innerText = data.total_burned.toFixed(2) + " SHIRONEKO";
+        }
+        setInterval(fetchBurned, 60000); // 1분마다 갱신
+        window.onload = fetchBurned;
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</head>
+<body>
+    <h1>🔥 Shironeko Burn Tracker 🔥</h1>
+    <p>총 소각된 SHIRONEKO: <span id="burnedAmount">로딩 중...</span></p>
+</body>
+</html>
