@@ -7,9 +7,9 @@ import time
 ETHERSCAN_API_KEY =  os.getenv("ETHERSCAN_API_KEY")
 TOKEN_CONTRACT = "0xb0AC2b5a73da0e67A8e5489Ba922B3f8d582e058"
 BURN_ADDRESS = "0xdEAD000000000000000042069420694206942069"
-API_URL = f"https://api.etherscan.io/api"
+API_URL = "https://api.etherscan.io/api"
 
-#if not ETHERSCAN_API_KEY:
+if not ETHERSCAN_API_KEY:
     raise ValueError("🚨 ERROR: 환경 변수 'ETHERSCAN_API_KEY'가 설정되지 않았습니다!")
 
 def fetch_burn_transactions():
