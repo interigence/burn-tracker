@@ -9,7 +9,10 @@ TOKEN_CONTRACT = "0xb0AC2b5a73da0e67A8e5489Ba922B3f8d582e058"
 BURN_ADDRESS = "0xdEAD000000000000000042069420694206942069"
 API_URL = "https://api.etherscan.io/api"
 
-DB_NAME = "burn_data.db"
+# SQLite 데이터베이스 경로 (절대 경로 사용)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "burn_data.db")
+
 app = Flask(__name__)
 
 def fetch_burn_transactions():
@@ -33,7 +36,7 @@ def fetch_burn_transactions():
 
 def update_database(transactions):
     """새로운 소각 데이터를 DB에 저장"""
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_PATH)  # 절대 경로 사용
     cursor = conn.cursor()
     
     cursor.execute("""
@@ -59,7 +62,7 @@ def update_database(transactions):
 
 def get_total_burned():
     """총 소각량을 데이터베이스에서 조회"""
-    conn = sqlite3.connect("burn_data.db")
+    conn = sqlite3.connect(DB_PATH)  # 절대 경로 사용
     cursor = conn.cursor()
     
     cursor.execute("SELECT SUM(amount) FROM burn_history")
