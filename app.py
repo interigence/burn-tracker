@@ -37,13 +37,19 @@ init_db()
 
 def fetch_burn_transactions():
     """Etherscan에서 소각 주소로 전송된 트랜잭션 조회"""
+    """Etherscan에서 소각 주소로 전송된 트랜잭션 전체 조회 (페이지네이션 적용)"""
+    all_transactions = []
+    page = 1
+    offset = 100  # 한 페이지에 조회할 항목 수
+
+    while True:
     params = {
         "module": "account",
         "action": "tokentx",
         "contractaddress": TOKEN_CONTRACT,
         "address": BURN_ADDRESS,
-        "page": 1,
-        "offset": 100,
+        "page": page,
+        "offset": offset,
         "sort": "desc",
         "apikey": ETHERSCAN_API_KEY
     }
@@ -51,8 +57,21 @@ def fetch_burn_transactions():
     data = response.json()
     
     if "result" in data:
-        return data["result"]
-    return []
+        transactions = data["result"]
+        if not transactions:
+            # 더 이상 가져올 데이터가 없으면 루프 종료
+            break
+       all_transactions.extend(transactions)
+
+        # 만약 조회된 트랜잭션 수가 offset보다 작으면, 마지막 페이지이므로 종료
+        if len(transactions) < offset:
+            break
+
+        page += 1
+    else:
+        break
+
+    return all_transactions
 
 def update_database(transactions):
     """새로운 소각 데이터를 DB에 저장"""
