@@ -9,11 +9,31 @@ TOKEN_CONTRACT = "0xb0AC2b5a73da0e67A8e5489Ba922B3f8d582e058"
 BURN_ADDRESS = "0xdEAD000000000000000042069420694206942069"
 API_URL = "https://api.etherscan.io/api"
 
-# SQLite 데이터베이스 경로 (절대 경로 사용)
+# SQLite 데이터베이스 경로 설정
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "burn_data.db")
 
 app = Flask(__name__)
+
+def init_db():
+    """데이터베이스가 없으면 자동 생성"""
+    if not os.path.exists(DB_PATH):
+        print("✅ DB 파일이 없습니다. 새로 생성합니다.")
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS burn_history (
+                txhash TEXT PRIMARY KEY,
+                amount REAL,
+                timestamp INTEGER
+            )
+        """)
+        conn.commit()
+        conn.close()
+        print("✅ SQLite 데이터베이스 초기화 완료")
+
+# 앱 시작 시 DB 초기화 실행
+init_db()
 
 def fetch_burn_transactions():
     """Etherscan에서 소각 주소로 전송된 트랜잭션 조회"""
@@ -36,40 +56,40 @@ def fetch_burn_transactions():
 
 def update_database(transactions):
     """새로운 소각 데이터를 DB에 저장"""
-    conn = sqlite3.connect(DB_PATH)  # 절대 경로 사용
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS burn_history (
-            txhash TEXT PRIMARY KEY,
-            amount REAL,
-            timestamp INTEGER
-        )
-    """)
-
-    for tx in transactions:
-        txhash = tx["hash"]
-        amount = int(tx["value"]) / (10 ** 18)  # 토큰 소수점 변환
-        timestamp = int(tx["timeStamp"])
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
         
-        cursor.execute("""
-            INSERT OR IGNORE INTO burn_history (txhash, amount, timestamp) 
-            VALUES (?, ?, ?)
-        """, (txhash, amount, timestamp))
-    
-    conn.commit()
-    conn.close()
+        for tx in transactions:
+            txhash = tx["hash"]
+            amount = int(tx["value"]) / (10 ** 18)  # 토큰 소수점 변환
+            timestamp = int(tx["timeStamp"])
+            
+            cursor.execute("""
+                INSERT OR IGNORE INTO burn_history (txhash, amount, timestamp) 
+                VALUES (?, ?, ?)
+            """, (txhash, amount, timestamp))
+        
+        conn.commit()
+        conn.close()
+        print("✅ DB 업데이트 완료")
+    except Exception as e:
+        print(f"❌ DB 업데이트 중 오류 발생: {e}")
 
 def get_total_burned():
     """총 소각량을 데이터베이스에서 조회"""
-    conn = sqlite3.connect(DB_PATH)  # 절대 경로 사용
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT SUM(amount) FROM burn_history")
-    total_burned = cursor.fetchone()[0] or 0
-    
-    conn.close()
-    return total_burned
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT SUM(amount) FROM burn_history")
+        total_burned = cursor.fetchone()[0] or 0
+        
+        conn.close()
+        return total_burned
+    except Exception as e:
+        print(f"❌ DB 조회 중 오류 발생: {e}")
+        return 0  # 오류 발생 시 기본값 0 반환
 
 @app.route('/')
 def home():
@@ -78,8 +98,8 @@ def home():
 @app.route('/api/burned', methods=["GET"])
 def burned():
     """소각된 SHIRONEKO 토큰 총량 반환"""
-    total_burned = get_total_burned()  # 데이터베이스에서 총 소각량 가져오기
-    return jsonify({"total_burned": total_burned})  # JSON 형태로 응답 반환
+    total_burned = get_total_burned()
+    return jsonify({"total_burned": total_burned})
 
 if __name__ == "__main__":
     app.run(debug=True)
