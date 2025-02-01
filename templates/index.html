@@ -4,28 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shironeko Burn Tracker</title>
+    
+    <!-- Google AdSense 광고 스크립트 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9604512601494581"
             crossorigin="anonymous"></script>
+
     <script>
         async function fetchBurned() {
             try {
                 const response = await fetch("/api/burned");
                 const data = await response.json();
-                console.log(data); // API 응답 데이터 확인
+                console.log("🔥 API 응답 데이터:", data); // API 응답 확인 (디버깅용)
+                
                 if (data && data.total_burned !== undefined) {
                     document.getElementById("burnedAmount").textContent = data.total_burned.toFixed(2) + " SHIRONEKO";
                 } else {
                     document.getElementById("burnedAmount").textContent = "데이터 오류";
                 }
             } catch (error) {
-                console.error("Error fetching burned data:", error);
+                console.error("❌ Error fetching burned data:", error);
                 document.getElementById("burnedAmount").textContent = "데이터를 가져오는 중 오류 발생";
             }
         }
+
         setInterval(fetchBurned, 60000); // 1분마다 갱신
+
         window.onload = function() {
             fetchBurned();
-            (adsbygoogle = window.adsbygoogle || []).push({});
+
+            // 광고 스크립트 로드를 3초 지연하여 실행
+            setTimeout(function() {
+                console.log("📢 Google AdSense 광고 로드 시작");
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            }, 3000);
         };
     </script>
 </head>
@@ -33,13 +44,22 @@
     <h1>🔥 Shironeko Burn Tracker 🔥</h1>
     <p>총 소각된 SHIRONEKO: <span id="burnedAmount">로딩 중...</span></p>
 
-    <!-- 광고 삽입 위치 -->
+    <!-- Google AdSense 광고 (페이지 상단) -->
     <div style="text-align: center; margin: 20px 0;">
         <ins class="adsbygoogle"
              style="display:block"
              data-ad-client="pub-9604512601494581"
              data-ad-slot="5372001330"
              data-ad-format="auto"></ins>
+    </div>
+
+    <!-- 추가 광고 영역 (하단 배너) -->
+    <div style="text-align: center; margin: 40px 0;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="pub-9604512601494581"
+             data-ad-slot="5372001330"
+             data-ad-format="horizontal"></ins>
     </div>
 </body>
 </html>
