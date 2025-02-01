@@ -74,7 +74,7 @@ def update_database(transactions):
         conn.close()
         print("✅ DB 업데이트 완료")
     except Exception as e:
-        print(f"❌ DB 업데이트 중 오류 발생: {e}")
+        print("❌ DB 업데이트 중 오류 발생: {e}")
 
 def get_total_burned():
     """총 소각량을 데이터베이스에서 조회"""
@@ -88,7 +88,7 @@ def get_total_burned():
         conn.close()
         return total_burned
     except Exception as e:
-        print(f"❌ DB 조회 중 오류 발생: {e}")
+        print("❌ DB 조회 중 오류 발생: {e}")
         return 0  # 오류 발생 시 기본값 0 반환
 
 @app.route('/')
