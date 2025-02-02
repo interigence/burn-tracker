@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shironeko Burn Tracker</title>
+    <title>ShiroBurn</title>
     
     <!-- Google AdSense 광고 스크립트 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9604512601494581"
@@ -17,7 +17,7 @@
                 console.log("🔥 API 응답 데이터:", data); // API 응답 확인 (디버깅용)
                 
                 if (data && data.total_burned !== undefined) {
-                    document.getElementById("burnedAmount").textContent = data.total_burned.toFixed(2) + " SHIRONEKO";
+                    document.getElementById("burnedAmount").textContent = data.total_burned.toFixed(2) + " $SHIRO";
                 } else {
                     document.getElementById("burnedAmount").textContent = "데이터 오류";
                 }
