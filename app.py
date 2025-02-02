@@ -16,6 +16,29 @@ DB_PATH = os.path.join(BASE_DIR, "burn_data.db")
 
 app = Flask(__name__)
 
+init_db()
+
+def init_db():
+    """데이터베이스 및 테이블이 없으면 자동 생성"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # 테이블 생성 (없으면 자동 생성)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS burn_history (
+                txhash TEXT PRIMARY KEY,
+                amount REAL,
+                timestamp INTEGER
+            )
+        """)
+        
+        conn.commit()
+        conn.close()
+        print("✅ SQLite 데이터베이스 및 burn_history 테이블 초기화 완료")
+    except Exception as e:
+        print(f"❌ init_db() 오류 발생: {e}")
+
 def fetch_total_burned():
     """Etherscan API에서 소각 주소(BURN_ADDRESS)의 보유 잔액 조회 (총 소각량)"""
     try:
@@ -45,6 +68,7 @@ def fetch_total_burned():
 def fetch_burn_rate():
     """24시간 동안의 Burn Rate 계산"""
     try:
+        init_db()  # DB 및 테이블 초기화 확인
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
