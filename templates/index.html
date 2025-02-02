@@ -22,7 +22,9 @@
 
                 if (dataBurned && dataBurned.total_burned !== undefined) {
                     document.getElementById("burnedAmount").textContent = dataBurned.total_burned.toFixed(2) + " $SHIRO";
-                } else {
+                    // 그래프 업데이트
+                    updateChart(dataBurned.total_burned); // total_burned 전달
+                }else {
                     document.getElementById("burnedAmount").textContent = "데이터 오류";
                 }
 
@@ -53,7 +55,7 @@
             const maxDataPoints = 24; // 예: 24시간 데이터를 표시
 
             // 데이터 추가
-            burnChart.data.datasets[0].data.push(burnAmount);
+            burnChart.data.datasets[0].data.push(totalBurned);
             burnChart.data.labels.push(new Date().toLocaleTimeString());
 
             // 데이터 포인트가 24개를 넘으면 첫 번째 데이터를 삭제
