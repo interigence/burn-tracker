@@ -30,8 +30,17 @@
                 const responseRate = await fetch("/api/burn-rate");
                 const dataRate = await responseRate.json();
 
-                document.getElementById("burnRate").textContent = dataRate.burn_rate.toFixed(2) + "% 🎢";
-                document.getElementById("burnAmount24h").textContent = `Last 24hrs (${dataRate.burn_amount_24h.toLocaleString()} $SHIRO)`;
+                if (dataRate && dataRate.burn_rate !== undefined) {
+                    document.getElementById("burnRate").textContent = dataRate.burn_rate.toFixed(2) + "% 🎢";
+                } else {
+                    document.getElementById("burnRate").textContent = "데이터 오류";
+                }
+
+                if (dataRate && dataRate.burn_amount_24h !== undefined) {
+                    document.getElementById("burnAmount24h").textContent = `Last 24hrs (${dataRate.burn_amount_24h.toLocaleString()} $SHIRO)`;
+                } else {
+                    document.getElementById("burnAmount24h").textContent = "데이터 오류";
+                }
 
                 // 그래프 업데이트
                 updateChart(dataRate.burn_amount_24h);
@@ -41,13 +50,51 @@
         }
 
         function updateChart(burnAmount) {
+            const maxDataPoints = 24; // 예: 24시간 데이터를 표시
+
+            // 데이터 추가
             burnChart.data.datasets[0].data.push(burnAmount);
             burnChart.data.labels.push(new Date().toLocaleTimeString());
+
+            // 데이터 포인트가 24개를 넘으면 첫 번째 데이터를 삭제
+            if (burnChart.data.datasets[0].data.length > maxDataPoints) {
+                burnChart.data.datasets[0].data.shift();
+                burnChart.data.labels.shift();
+            }
+
             burnChart.update();
         }
 
-        setInterval(fetchBurnData, 60000); // 1분마다 갱신
+        var burnChart;
+
         window.onload = function() {
+            // 그래프 객체 생성
+            var ctx = document.getElementById('burnRateChart').getContext('2d');
+            burnChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Burn Amount (Last 24h)',
+                        data: [],
+                        borderColor: 'red',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Burn Amount' }
+                        }
+                    }
+                }
+            });
+
+            // 데이터 가져오기
             fetchBurnData();
 
             // 광고 스크립트 로드를 3초 지연하여 실행
@@ -66,33 +113,6 @@
 
     <!-- Burn Rate 그래프 -->
     <canvas id="burnRateChart" width="400" height="200"></canvas>
-
-    <script>
-        var ctx = document.getElementById('burnRateChart').getContext('2d');
-        var burnChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Burn Amount (Last 24h)',
-                    data: [],
-                    borderColor: 'red',
-                    borderWidth: 2,
-                    fill: false
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Time' }
-                    },
-                    y: {
-                        title: { display: true, text: 'Burn Amount' }
-                    }
-                }
-            }
-        });
-    </script>
 
     <!-- Google AdSense 광고 (페이지 상단) -->
     <div style="text-align: center; margin: 20px 0;">
