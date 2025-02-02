@@ -22,9 +22,7 @@
 
                 if (dataBurned && dataBurned.total_burned !== undefined) {
                     document.getElementById("burnedAmount").textContent = dataBurned.total_burned.toFixed(2) + " $SHIRO";
-                    // 그래프 업데이트
-                    updateChart(dataBurned.total_burned); // total_burned 전달
-                }else {
+                } else {
                     document.getElementById("burnedAmount").textContent = "데이터 오류";
                 }
 
@@ -114,7 +112,7 @@
     <p><span id="burnAmount24h"></span></p>
 
     <!-- Burn Rate 그래프 -->
-    <canvas id="burnRateChart" width="400" height="200"></canvas>
+    <canvas id="burnRateChart" width="200" height="100"></canvas>
 
     <!-- Google AdSense 광고 (페이지 상단) -->
     <div style="text-align: center; margin: 20px 0;">
