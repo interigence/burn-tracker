@@ -67,6 +67,32 @@ def fetch_total_burned():
         print(f"❌ fetch_total_burned() 오류 발생: {e}")
         return 0  # API 호출 실패 시 0 반환
 
+def fetch_token_info():
+    """Etherscan API에서 토큰의 공급 정보 가져오기"""
+    try:
+        params = {
+            "module": "stats",
+            "action": "tokensupply",
+            "contractaddress": TOKEN_CONTRACT,
+            "apikey": ETHERSCAN_API_KEY
+        }
+
+        response = requests.get(API_URL, params=params)
+        data = response.json()
+
+        if "result" in data:
+            total_supply = int(data["result"]) / (10 ** 18)  # 소수점 변환
+            max_supply = 1000000000000  # 예시값: 실제 max supply 값으로 설정 필요
+            circulating_supply = total_supply - fetch_total_burned()  # Circulating supply 계산
+
+            return {"max_supply": max_supply, "total_supply": total_supply, "circulating_supply": circulating_supply}
+        else:
+            print("❌ Etherscan API 응답 오류:", data)
+            return {"max_supply": 0, "total_supply": 0, "circulating_supply": 0}  # 에러 발생 시 0 반환
+    except Exception as e:
+        print(f"❌ fetch_token_info() 오류 발생: {e}")
+        return {"max_supply": 0, "total_supply": 0, "circulating_supply": 0}
+
 def fetch_burn_rate():
     """24시간 동안의 Burn Rate 계산"""
     try:
@@ -126,6 +152,12 @@ def burned():
     """소각된 SHIRONEKO 토큰 총량 반환"""
     total_burned = fetch_total_burned()
     return jsonify({"total_burned": total_burned})
+
+@app.route('/api/token-info', methods=["GET"])
+def token_info():
+    """Max Total Supply, Total Supply, Circulating Supply 반환"""
+    data = fetch_token_info()
+    return jsonify(data)
 
 @app.route('/api/burn-rate', methods=["GET"])
 def burn_rate():

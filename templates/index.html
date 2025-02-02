@@ -48,6 +48,20 @@
                 console.error("❌ Error fetching burn data:", error);
             }
         }
+        async function fetchTokenInfo() {
+            try {
+                //토큰 정보 가져오기
+                const responseToken = await fetch("/api/token-info");
+                const dataToken = await responseToken.json();
+                console.log("📊 Token Info:", dataToken); //디버깅용
+
+                document.getElementById("maxSupply").textContent = dataToken.max_supply.toLocaleString() + " $SHIRO";
+                document.getElementById("totalSupply").textContent = dataToken.total_supply.toLocaleString() + " $SHIRO";
+                document.getElementById("circulatingSupply").textContent = dataToken.circulating_supply.toLocaleString() + " $SHIRO";
+            } catch (error) {
+                console.error("❌ Error fetching token info:", error);
+            }
+        }
 
         function updateChart(burnAmount) {
             const maxDataPoints = 24; // 예: 24시간 데이터를 표시
@@ -69,6 +83,7 @@
 
         window.onload = function() {
             // 그래프 객체 생성
+            
             var ctx = document.getElementById('burnRateChart').getContext('2d');
             burnChart = new Chart(ctx, {
                 type: 'line',
@@ -95,7 +110,8 @@
             });
 
             // 데이터 가져오기
-            fetchBurnData();
+            fetchBurnData();  // 소각 데이터
+            fetchTokenInfo(); // 토큰 정보
 
             // 광고 스크립트 로드를 3초 지연하여 실행
             setTimeout(function() {
@@ -109,6 +125,9 @@
     <h1>🔥 $Shiro Neko Supply 🔥</h1>
     <p>Total burnt from initial supply: <span id="burnedAmount">Loading...</span></p>
     <p>Burn Rate: <span id="burnRate">Loading...</span></p>
+    <p>Max Total Supply: <span id="maxSupply">Loading...</span></p>
+    <p>Total Supply: <span id="totalSupply">Loading...</span></p>
+    <p>Circulating Supply: <span id="circulatingSupply">Loading...</span></p>
     <p><span id="burnAmount24h"></span></p>
 
     <!-- Burn Rate 그래프 -->
