@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask import render_template
 import os
 import requests
 import sqlite3
@@ -57,7 +58,7 @@ def fetch_total_burned():
 
         if "result" in data:
             balance = int(data["result"]) / (10 ** 18)  # 소수점 변환
-            print(f"🔥 Total Burned Tokens: {balance} SHIRONEKO")
+            print(f"🔥 Total Burned Tokens: {balance} $SHIRO")
             return balance
         else:
             print("❌ Etherscan API 응답 오류:", data)
@@ -81,7 +82,7 @@ def fetch_burn_rate():
 
         # 현재 Total Burn 조회
         current_total_burned = fetch_total_burned()
-        print(f"🔥 현재 총 소각량: {current_total_burned} SHIRONEKO")
+        print(f"🔥 현재 총 소각량: {current_total_burned} $SHIRO")
 
         # 24시간 전 Total Burn 조회
         cursor.execute("SELECT amount FROM burn_history WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1", (past_24hrs_time,))
@@ -98,7 +99,7 @@ def fetch_burn_rate():
         else:
             past_total_burned = past_total_burned[0]
 
-        print(f"⏳ 24시간 전 소각량: {past_total_burned} SHIRONEKO")
+        print(f"⏳ 24시간 전 소각량: {past_total_burned} $SHIRO")
 
         conn.close()
 
@@ -115,6 +116,10 @@ def fetch_burn_rate():
     except Exception as e:
         print(f"❌ fetch_burn_rate() 오류 발생: {e}")
         return {"error": str(e), "burn_rate": 0, "burn_amount_24h": 0}  # 오류 발생 시 기본값 반환
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/api/burned', methods=["GET"])
 def burned():
