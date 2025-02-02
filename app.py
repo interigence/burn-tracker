@@ -18,58 +18,75 @@ app = Flask(__name__)
 
 def fetch_total_burned():
     """Etherscan API에서 소각 주소(BURN_ADDRESS)의 보유 잔액 조회 (총 소각량)"""
-    params = {
-        "module": "account",
-        "action": "tokenbalance",
-        "contractaddress": TOKEN_CONTRACT,
-        "address": BURN_ADDRESS,
-        "tag": "latest",
-        "apikey": ETHERSCAN_API_KEY
-    }
-    
-    response = requests.get(API_URL, params=params)
-    data = response.json()
+    try:
+        params = {
+            "module": "account",
+            "action": "tokenbalance",
+            "contractaddress": TOKEN_CONTRACT,
+            "address": BURN_ADDRESS,
+            "tag": "latest",
+            "apikey": ETHERSCAN_API_KEY
+        }
+        
+        response = requests.get(API_URL, params=params)
+        data = response.json()
 
-    if "result" in data:
-        balance = int(data["result"]) / (10 ** 18)  # 소수점 변환
-        print(f"🔥 Total Burned Tokens: {balance} SHIRONEKO")
-        return balance
-    print("❌ Etherscan API 응답 오류:", data)
-    return 0  # 에러 발생 시 0 반환
+        if "result" in data:
+            balance = int(data["result"]) / (10 ** 18)  # 소수점 변환
+            print(f"🔥 Total Burned Tokens: {balance} SHIRONEKO")
+            return balance
+        else:
+            print("❌ Etherscan API 응답 오류:", data)
+            return 0  # 에러 발생 시 0 반환
+    except Exception as e:
+        print(f"❌ fetch_total_burned() 오류 발생: {e}")
+        return 0  # API 호출 실패 시 0 반환
 
 def fetch_burn_rate():
     """24시간 동안의 Burn Rate 계산"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
 
-    # 현재 시간과 24시간 전 시간 계산
-    current_time = int(time.time())
-    past_24hrs_time = current_time - 86400  # 24시간 전 (초 단위)
+        # 현재 시간과 24시간 전 시간 계산
+        current_time = int(time.time())
+        past_24hrs_time = current_time - 86400  # 24시간 전 (초 단위)
 
-    # 현재 Total Burn 조회
-    current_total_burned = fetch_total_burned()
+        print(f"🕒 현재 시간: {current_time}, 24시간 전: {past_24hrs_time}")
 
-    # 24시간 전 Total Burn 조회
-    cursor.execute("SELECT amount FROM burn_history WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1", (past_24hrs_time,))
-    past_total_burned = cursor.fetchone()
+        # 현재 Total Burn 조회
+        current_total_burned = fetch_total_burned()
+        print(f"🔥 현재 총 소각량: {current_total_burned} SHIRONEKO")
 
-    if past_total_burned is None:
-        past_total_burned = 0
-    else:
-        past_total_burned = past_total_burned[0]
+        # 24시간 전 Total Burn 조회
+        cursor.execute("SELECT amount FROM burn_history WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1", (past_24hrs_time,))
+        past_total_burned = cursor.fetchone()
 
-    conn.close()
+        if past_total_burned is None:
+            past_total_burned = 0
+        else:
+            past_total_burned = past_total_burned[0]
 
-    # Burn Amount 계산
-    burn_amount_24h = current_total_burned - past_total_burned
+        print(f"⏳ 24시간 전 소각량: {past_total_burned} SHIRONEKO")
 
-    # Burn Rate 계산
-    if past_total_burned > 0:
-        burn_rate = (burn_amount_24h / past_total_burned) * 100
-    else:
-        burn_rate = 0  # 데이터 부족 시 0%
+        conn.close()
 
-    return {"burn_rate": burn_rate, "burn_amount_24h": burn_amount_24h}
+        # Burn Amount 계산
+        burn_amount_24h = current_total_burned - past_total_burned
+
+        # Burn Rate 계산
+        if past_total_burned > 0:
+            burn_rate = (burn_amount_24h / past_total_burned) * 100
+        else:
+            burn_rate = 0  # 데이터 부족 시 0%
+
+        print(f"📊 Burn Rate: {burn_rate:.2f}%, Burn Amount (24h): {burn_amount_24h}")
+
+        return {"burn_rate": burn_rate, "burn_amount_24h": burn_amount_24h}
+    
+    except Exception as e:
+        print(f"❌ fetch_burn_rate() 오류 발생: {e}")
+        return {"error": str(e), "burn_rate": 0, "burn_amount_24h": 0}  # 오류 발생 시 기본값 반환
 
 @app.route('/api/burned', methods=["GET"])
 def burned():
