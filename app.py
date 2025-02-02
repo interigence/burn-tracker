@@ -93,6 +93,34 @@ def fetch_token_info():
         print(f"❌ fetch_token_info() 오류 발생: {e}")
         return {"max_supply": 0, "total_supply": 0, "circulating_supply": 0}
 
+def fetch_shironeko_info():
+    """CoinGecko API에서 $SHIRONEKO 가격, 마켓캡, 거래량 가져오기"""
+    try:
+        url = "https://api.coingecko.com/api/v3/simple/price?ids=shironeko&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true"
+        response = requests.get(url)
+        data = response.json()
+
+        if "shironeko" in data:
+            price = data["shironeko"]["usd"]
+            market_cap = data["shironeko"]["usd_market_cap"]
+            volume_24h = data["shironeko"]["usd_24h_vol"]
+
+            # 가격 상승/하락 비율 계산
+            change_24h = data["shironeko"].get("usd_24h_change", 0)
+
+            return {
+                "price": price,
+                "market_cap": market_cap,
+                "volume_24h": volume_24h,
+                "change_24h": change_24h
+            }
+        else:
+            print("❌ CoinGecko API 응답 오류:", data)
+            return {"price": 0, "market_cap": 0, "volume_24h": 0, "change_24h": 0}
+    except Exception as e:
+        print(f"❌ fetch_shironeko_info() 오류 발생: {e}")
+        return {"price": 0, "market_cap": 0, "volume_24h": 0, "change_24h": 0}
+
 def fetch_burn_rate():
     """24시간 동안의 Burn Rate 계산"""
     try:
@@ -157,6 +185,12 @@ def burned():
 def token_info():
     """Max Total Supply, Total Supply, Circulating Supply 반환"""
     data = fetch_token_info()
+    return jsonify(data)
+
+@app.route('/api/shironeko-info', methods=["GET"])
+def shironeko_info():
+    """$SHIRONEKO 가격, 마켓캡, 거래량 정보 반환"""
+    data = fetch_shironeko_info()
     return jsonify(data)
 
 @app.route('/api/burn-rate', methods=["GET"])

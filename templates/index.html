@@ -62,6 +62,28 @@
                 console.error("❌ Error fetching token info:", error);
             }
         }
+        async function fetchShironekoInfo() {
+           try {
+               const responseShironeko = await fetch("/api/shironeko-info");
+               const dataShironeko = await responseShironeko.json();
+               console.log("📊 $SHIRONEKO Info:", dataShironeko);
+
+               // $SHIRONEKO Price 변환
+               const price = dataShironeko.price.toLocaleString("en-US", { style: "currency", currency: "USD" });
+               const marketCap = dataShironeko.market_cap.toLocaleString("en-US", { style: "currency", currency: "USD" });
+               const volume24h = dataShironeko.volume_24h.toLocaleString("en-US", { style: "currency", currency: "USD" });
+
+               // 가격 상승/하락 표시
+               const priceChange = dataShironeko.change_24h > 0 ? `▲ ${dataShironeko.change_24h.toFixed(2)}%` : `▼ ${Math.abs(dataShironeko.change_24h).toFixed(2)}%`;
+
+               // 웹사이트에 값 표시
+               document.getElementById("shironekoPrice").textContent = `${price} (${priceChange})`;
+               document.getElementById("marketCap").textContent = `Market Cap: ${marketCap}`;
+               document.getElementById("volume24h").textContent = `Volume (24h): ${volume24h}`;
+           } catch (error) {
+               console.error("❌ Error fetching $SHIRONEKO info:", error);
+           }
+        }
 
         function updateChart(burnAmount) {
             const maxDataPoints = 24; // 예: 24시간 데이터를 표시
@@ -112,6 +134,7 @@
             // 데이터 가져오기
             fetchBurnData();  // 소각 데이터
             fetchTokenInfo(); // 토큰 정보
+            fetchShironekoInfo();  // 추가된 부분
 
             // 광고 스크립트 로드를 3초 지연하여 실행
             setTimeout(function() {
@@ -123,13 +146,18 @@
 </head>
 <body>
     <h1>🔥 $Shiro Neko Supply 🔥</h1>
+
+    <div class="shironeko-info">
+        <p id="shironekoPrice">Loading...</p>
+        <p id="marketCap">Market Cap: Loading...</p>
+        <p id="volume24h">Volume (24h): Loading...</p>
+    </div>    
+
     <p>Total burnt from initial supply: <span id="burnedAmount">Loading...</span></p>
     <p>Max Total Supply: <span id="maxSupply">Loading...</span></p>
     <p>Total Supply: <span id="totalSupply">Loading...</span></p>
     <p>Circulating Supply: <span id="circulatingSupply">Loading...</span></p>
-    <p></p>
-    <p></p>
-    <p></p>
+
     <p>Burn Rate: <span id="burnRate">Loading...</span></p>
     <p><span id="burnAmount24h"></span></p>
 
@@ -153,5 +181,20 @@
              data-ad-slot="5372001330"
              data-ad-format="horizontal"></ins>
     </div>
+
+    <style>
+        .shironeko-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+    
+        .shironeko-info p {
+            margin: 0;
+            font-size: 1.2em;
+        }
+    </style>
 </body>
 </html>
