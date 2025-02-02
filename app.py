@@ -37,7 +37,7 @@ def init_db():
     except Exception as e:
         print(f"❌ init_db() 오류 발생: {e}")
 
-# 앱 실행 시 DB 초기화 실행
+# ✅ `init_db()`를 먼저 정의한 후 호출!
 init_db()
 
 def fetch_total_burned():
