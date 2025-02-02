@@ -88,7 +88,15 @@ def fetch_burn_rate():
         past_total_burned = cursor.fetchone()
 
         # 조회된 데이터가 없으면 기본값 0
-        past_total_burned = past_total_burned[0] if past_total_burned else 0
+        if past_total_burned is None:
+            print("❌ 24시간 전 데이터가 없습니다. 현재 소각량을 기록합니다.")
+            # 데이터가 없으면 현재 소각량을 DB에 삽입
+            cursor.execute("INSERT INTO burn_history (txhash, amount, timestamp) VALUES (?, ?, ?)", 
+                           ('initial_txhash', current_total_burned, current_time))
+            conn.commit()
+            past_total_burned = current_total_burned
+        else:
+            past_total_burned = past_total_burned[0]
 
         print(f"⏳ 24시간 전 소각량: {past_total_burned} SHIRONEKO")
 
@@ -118,6 +126,7 @@ def burned():
 def burn_rate():
     """24시간 Burn Rate 반환"""
     data = fetch_burn_rate()
+    print(f"📊 Burn Rate API 응답: {data}")  # 디버깅용
     return jsonify(data)
 
 if __name__ == "__main__":
