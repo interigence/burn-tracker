@@ -31,7 +31,7 @@ def fetch_total_burned():
 
     if "result" in data:
         balance = int(data["result"]) / (10 ** 18)  # 소수점 변환
-        print(f"🔥 Total Burned Tokens: {balance} SHIRONEKO")
+        print(f"🔥 Total Burned Tokens: {balance} $SHIRO")
         return balance
     print("❌ Etherscan API 응답 오류:", data)
     return 0  # 에러 발생 시 0 반환
