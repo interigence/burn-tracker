@@ -8,29 +8,47 @@
     <!-- Google AdSense 광고 스크립트 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9604512601494581"
             crossorigin="anonymous"></script>
+    
+    <!-- Chart.js 추가 (그래프용) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        async function fetchBurned() {
+        async function fetchBurnData() {
             try {
-                const response = await fetch("/api/burned");
-                const data = await response.json();
-                console.log("🔥 API 응답 데이터:", data); // API 응답 확인 (디버깅용)
-                
-                if (data && data.total_burned !== undefined) {
-                    document.getElementById("burnedAmount").textContent = data.total_burned.toFixed(2) + " $SHIRO";
+                // 총 소각량 가져오기
+                const responseBurned = await fetch("/api/burned");
+                const dataBurned = await responseBurned.json();
+                console.log("🔥 API 응답 데이터:", dataBurned); // 디버깅용
+
+                if (dataBurned && dataBurned.total_burned !== undefined) {
+                    document.getElementById("burnedAmount").textContent = dataBurned.total_burned.toFixed(2) + " $SHIRO";
                 } else {
                     document.getElementById("burnedAmount").textContent = "데이터 오류";
                 }
+
+                // Burn Rate 가져오기
+                const responseRate = await fetch("/api/burn-rate");
+                const dataRate = await responseRate.json();
+
+                document.getElementById("burnRate").textContent = dataRate.burn_rate.toFixed(2) + "% 🎢";
+                document.getElementById("burnAmount24h").textContent = `Last 24hrs (${dataRate.burn_amount_24h.toLocaleString()} $SHIRO)`;
+
+                // 그래프 업데이트
+                updateChart(dataRate.burn_amount_24h);
             } catch (error) {
-                console.error("❌ Error fetching burned data:", error);
-                document.getElementById("burnedAmount").textContent = "데이터를 가져오는 중 오류 발생";
+                console.error("❌ Error fetching burn data:", error);
             }
         }
 
-        setInterval(fetchBurned, 60000); // 1분마다 갱신
+        function updateChart(burnAmount) {
+            burnChart.data.datasets[0].data.push(burnAmount);
+            burnChart.data.labels.push(new Date().toLocaleTimeString());
+            burnChart.update();
+        }
 
+        setInterval(fetchBurnData, 60000); // 1분마다 갱신
         window.onload = function() {
-            fetchBurned();
+            fetchBurnData();
 
             // 광고 스크립트 로드를 3초 지연하여 실행
             setTimeout(function() {
@@ -43,11 +61,38 @@
 <body>
     <h1>🔥 $Shiro Neko Supply 🔥</h1>
     <p>Total burnt from initial supply: <span id="burnedAmount">Loading...</span></p>
-    <p>Max Total Supply: <span id="burnedAmount">Loading...</span></p>
-    <p>Total Supply: <span id="burnedAmount">Loading...</span></p>
-    <p>Circulating Supply: <span id="burnedAmount">Loading...</span></p>
-    <p>For Staking: <span id="burnedAmount">Loading...</span></p>
-    <p>Community: <span id="burnedAmount">Loading...</span></p>
+    <p>Burn Rate: <span id="burnRate">Loading...</span></p>
+    <p><span id="burnAmount24h"></span></p>
+
+    <!-- Burn Rate 그래프 -->
+    <canvas id="burnRateChart" width="400" height="200"></canvas>
+
+    <script>
+        var ctx = document.getElementById('burnRateChart').getContext('2d');
+        var burnChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Burn Amount (Last 24h)',
+                    data: [],
+                    borderColor: 'red',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Burn Amount' }
+                    }
+                }
+            }
+        });
+    </script>
 
     <!-- Google AdSense 광고 (페이지 상단) -->
     <div style="text-align: center; margin: 20px 0;">
